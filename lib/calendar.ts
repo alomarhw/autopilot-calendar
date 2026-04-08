@@ -1,6 +1,6 @@
 import { google } from "googleapis";
-import { getGoogleOAuthClient } from "@/lib/google";
 import { getCurrentUser } from "@/lib/auth";
+import { getAuthorizedGoogleOAuthClient } from "@/lib/google";
 
 export async function getCalendarClient() {
   const user = await getCurrentUser();
@@ -9,11 +9,7 @@ export async function getCalendarClient() {
     throw new Error("Google account not connected");
   }
 
-  const client = getGoogleOAuthClient();
-  client.setCredentials({
-    access_token: user.googleAccount.accessToken,
-    refresh_token: user.googleAccount.refreshToken ?? undefined,
-  });
+  const client = await getAuthorizedGoogleOAuthClient(user.googleAccount);
 
   return google.calendar({ version: "v3", auth: client });
 }
@@ -25,7 +21,7 @@ export async function getUpcomingEvents() {
   const result = await calendar.events.list({
     calendarId: "primary",
     timeMin: now,
-    maxResults: 10,
+    maxResults: 20,
     singleEvents: true,
     orderBy: "startTime",
   });
