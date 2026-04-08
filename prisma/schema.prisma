@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  googleAccount GoogleAccount?
+  briefs        MeetingBrief[]
+}
+
+model GoogleAccount {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  googleSub    String   @unique
+  accessToken  String   @db.Text
+  refreshToken String?  @db.Text
+  expiryDate   DateTime?
+  scope        String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MeetingBrief {
+  id            String   @id @default(cuid())
+  userId        String
+  eventId       String
+  eventTitle    String
+  eventStart    DateTime
+  briefMarkdown String   @db.Text
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventId])
+}
